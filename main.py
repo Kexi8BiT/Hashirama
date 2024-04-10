@@ -10,6 +10,9 @@ key = None
 
 version = "- 0.5"
 
+
+
+
 def main(page: ft.Page):
     page.title = f"Hashirama {version}"
     page.window_width = 1000
@@ -112,7 +115,7 @@ def main(page: ft.Page):
 
                 data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-                encrypt_file("data.hashrama", bytes(data_str, "utf-8"), derive_key(key))
+                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
                 print("Готово")
                 saved_button.disable(True)
 
@@ -169,7 +172,7 @@ def main(page: ft.Page):
 
                 data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-                encrypt_file("data.hashrama", bytes(data_str, "utf-8"), derive_key(key))
+                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
                 print("Готово")
                 close(e)
             cancel = Button("Оставить", "default", close)
@@ -199,15 +202,26 @@ def main(page: ft.Page):
 
 
     def first_start():
-        def conf(e):
-            global key
-            key = join_text.value
-            json_data = {"passwords": []}
-            data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-            encrypt_file("data.hashrama", bytes(data_str, "utf-8"), derive_key(key))
-            page.overlay.pop()
-            page.update()
+        def conf(e):
+            join_button.loading(True)
+            try:
+                global key
+                key = join_text.value
+                json_data = {"passwords": []}
+                data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
+
+                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
+                page.overlay.pop()
+                page.update()
+            except Exception as e:
+                join_button.loading(False)
+                join_button.disable(True)
+                modal.height = modal.height + 22
+                join_text.error_text = f"Запустите с правами админестратора 🥲"
+                join_text.update()
+                modal.update()
+
 
         join_button = Button("Создать", style="primary", border_radius=20, width=130, on_click=conf)
         join_text = ft.TextField(hint_text="Ключ доступа", **text_input_outline,
@@ -336,7 +350,7 @@ def main(page: ft.Page):
         join_button.loading(True)
         global key
         key = join_text.value
-        data = decrypt_file("data.hashrama", derive_key(key))
+        data = decrypt_file("data.hashirama", derive_key(key))
 
 
         if data == "418":
@@ -376,7 +390,7 @@ def main(page: ft.Page):
             password_column.update()
             page.overlay.remove(key_in_pu_t)
             page.update()
-    if not os.path.exists("data.hashrama"):
+    if not os.path.exists("data.hashirama"):
         first_start()
     else:
         join_button = Button("Войти", style="primary", border_radius=20, width=130, on_click=click)

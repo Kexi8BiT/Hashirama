@@ -1,8 +1,4 @@
-from typing import Optional
-
 import flet as ft
-
-
 
 
 class Button(ft.UserControl):
@@ -133,11 +129,6 @@ icon_button_eleveted = {
                     surface_tint_color=ft.colors.TRANSPARENT,
                     side=ft.BorderSide(1, "#242424"))
             }
-# def main(page: ft.Page):
-#
-#     page.add()
-#
-# ft.app(main)
 
 window_ui = {
     "bgcolor": ft.colors.BLACK,
