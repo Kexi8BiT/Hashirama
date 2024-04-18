@@ -9,7 +9,7 @@ from generate import generate_password, regenerate_password
 passwords = []
 key = None
 
-version = "- 1.5"
+version = "- 1.6"
 documents_path = os.path.expanduser(r"~\Documents")
 
 
