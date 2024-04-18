@@ -4,12 +4,13 @@ import time
 import json
 from hashhhshshshs import derive_key, decrypt_file, encrypt_file
 import os
-from generate import generate_password
+from generate import generate_password, regenerate_password
+
 passwords = []
 key = None
 
-version = "- 0.5"
-
+version = "- 1.5"
+documents_path = os.path.expanduser(r"~\Documents")
 
 
 
@@ -21,6 +22,7 @@ def main(page: ft.Page):
     page.window_resizable = False
     page.bgcolor = window_ui["bgcolor"]
     page.padding = 0
+    page.theme_mode = ft.ThemeMode.DARK
 
     class PassObject(ft.UserControl):
         def __init__(self, name, passsword, icon="assets/safe.png", note="", new_pass: bool=False):
@@ -49,7 +51,7 @@ def main(page: ft.Page):
                     self.rmv
                 ], spacing=0)
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), width=230, height=50, bgcolor=ft.colors.TRANSPARENT,
-                border_radius=10, padding=5, on_hover=self.onhover, on_click=self.open_page)
+                border_radius=10, padding=5, on_hover=self.onhover, on_click=self.open_page, offset=ft.Offset(0, 0), opacity=1, animate_offset=ft.animation.Animation(300, ft.AnimationCurve.EASE_IN_OUT), animate_opacity=ft.animation.Animation(300, ft.AnimationCurve.EASE_IN_OUT))
 
             if new_pass:
                 self.open_page("e")
@@ -74,6 +76,15 @@ def main(page: ft.Page):
             page.set_clipboard(self.passsword)
         def open_page(self, e):
             def change(e):
+                if password_typing.value == "":
+                    saved_button.disable(True)
+                    return
+
+                if name_typing.value == "":
+                    saved_button.disable(True)
+                    return
+
+
                 if password_typing.value != self.passsword:
                     saved_button.disable(False)
                 elif name_typing.value != self.name:
@@ -115,7 +126,7 @@ def main(page: ft.Page):
 
                 data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
+                encrypt_file(fr"{documents_path}\Hashirama\data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
                 print("Готово")
                 saved_button.disable(True)
 
@@ -148,8 +159,13 @@ def main(page: ft.Page):
 
             def delete(e):
                 delw.disable(True)
+                close(e)
+                self.object.opacity = 0
+                self.object.update()
+                time.sleep(0.3)
                 password_column.controls.remove(self)
                 password_column.update()
+
                 json_data = {
                     "passwords": [],
                 }
@@ -172,10 +188,9 @@ def main(page: ft.Page):
 
                 data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
-                print("Готово")
-                close(e)
-            cancel = Button("Оставить", "default", close)
+                encrypt_file(fr"{documents_path}\Hashirama\data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
+                print("Готtово")
+            cancel = Button("Оставить", "text", close)
             delw = Button("Удалить", "danger", delete)
             modal = ft.Container(
                 ft.Column(
@@ -189,11 +204,17 @@ def main(page: ft.Page):
                 height=180,
                 bgcolor="#171717",
                 padding=15,
-                border_radius=20
+                border_radius=20,
+                scale=0,
+                animate_scale=ft.animation.Animation(200, ft.AnimationCurve.EASE_OUT_BACK)
             )
             page.overlay.append(ft.Stack([ft.Container(modal, bgcolor=ft.colors.with_opacity(0.5, ft.colors.BLACK),
                                                        blur=ft.Blur(10, 10), alignment=ft.alignment.center)]))
             page.update()
+            time.sleep(0.1)
+            modal.scale = 1
+            modal.update()
+
 
         def build(self):
 
@@ -202,6 +223,7 @@ def main(page: ft.Page):
 
 
     def first_start():
+        os.makedirs(fr"{documents_path}\Hashirama", exist_ok=True)
 
         def conf(e):
             join_button.loading(True)
@@ -211,7 +233,7 @@ def main(page: ft.Page):
                 json_data = {"passwords": []}
                 data_str = json.dumps(json_data, ensure_ascii=False, indent=4, separators=(',', ': '))
 
-                encrypt_file("data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
+                encrypt_file(fr"{documents_path}\Hashirama\data.hashirama", bytes(data_str, "utf-8"), derive_key(key))
                 page.overlay.pop()
                 page.update()
             except Exception as e:
@@ -296,7 +318,11 @@ def main(page: ft.Page):
         icon_prewiew.update()
 
     def generate(e):
-        password_typing.value = generate_password()
+        if password_typing.value == "":
+            new_pass = generate_password(16)
+        else:
+            new_pass = regenerate_password(password_typing.value)
+        password_typing.value = new_pass
         password_typing.update()
 
     password_typing = ft.TextField(hint_text="Пароль...", **text_input, width=593)
@@ -350,7 +376,7 @@ def main(page: ft.Page):
         join_button.loading(True)
         global key
         key = join_text.value
-        data = decrypt_file("data.hashirama", derive_key(key))
+        data = decrypt_file(fr"{documents_path}\Hashirama\data.hashirama", derive_key(key))
 
 
         if data == "418":
@@ -385,12 +411,16 @@ def main(page: ft.Page):
             data = json.loads(data)
             passwords = data["passwords"]
             join_button.loading(False)
+            key_in_pu_t.controls[0].opacity = 0
+            key_in_pu_t.update()
+            time.sleep(0.2)
+            page.overlay.remove(key_in_pu_t)
+            page.update()
             password_column.controls = [PassObject(password['name'], password['passsword'], password['icon'], password['note']) for
                                         password in passwords]
             password_column.update()
-            page.overlay.remove(key_in_pu_t)
-            page.update()
-    if not os.path.exists("data.hashirama"):
+
+    if not os.path.exists(fr"{documents_path}\Hashirama\data.hashirama"):
         first_start()
     else:
         join_button = Button("Войти", style="primary", border_radius=20, width=130, on_click=click)
@@ -407,7 +437,7 @@ def main(page: ft.Page):
             padding=15,
             border_radius=20
         )
-        key_in_pu_t = ft.Stack([ft.Container(modal, bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK), blur=ft.Blur(5, 5), alignment=ft.alignment.center)])
+        key_in_pu_t = ft.Stack([ft.Container(modal, bgcolor=ft.colors.with_opacity(0.2, ft.colors.BLACK), blur=ft.Blur(5, 5), alignment=ft.alignment.center, opacity=1, animate_opacity=ft.animation.Animation(200, ft.AnimationCurve.EASE_IN_OUT))])
         page.overlay.append(key_in_pu_t)
         page.update()
 

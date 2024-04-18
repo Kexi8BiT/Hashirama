@@ -141,7 +141,7 @@ text_input = {
   "border_width": 1,
   "border_color": "#242424",
   "cursor_color": "#CCCCCC",
-  "hint_style": ft.TextStyle(color="#2A2A2A"),
+  "hint_style": ft.TextStyle(color="#CCCCCC"),
   "selection_color":ft.colors.with_opacity(0.2, "#ffffff")
 }
 
@@ -151,6 +151,6 @@ text_input_outline = {
   "border_width": 1,
   "border_color": "#2A2A2A",
   "cursor_color": "#CCCCCC",
-  "hint_style": ft.TextStyle(color="#2A2A2A"),
+  "hint_style": ft.TextStyle(color="#CCCCCC"),
   "selection_color":ft.colors.with_opacity(0.2, "#ffffff")
 }
